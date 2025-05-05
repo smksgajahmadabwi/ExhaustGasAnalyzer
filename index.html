@@ -23,6 +23,9 @@
       position: relative;
       height: 100vh;
       width: 100vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
     
     #video-container {
@@ -59,6 +62,9 @@
       height: 100%;
       z-index: 10;
       pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
     
     .header {
@@ -82,15 +88,14 @@
     }
     
     .controls-container {
-      position: absolute;
-      bottom: 0;
-      left: 0;
       width: 100%;
       display: flex;
       flex-direction: column;
       gap: 10px;
       padding: 15px;
       pointer-events: auto;
+      background: rgba(0, 0, 0, 0.5);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .controls {
@@ -116,6 +121,7 @@
       min-width: 120px;
       transition: all 0.3s;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      flex: 1;
     }
     
     button:hover {
@@ -137,6 +143,7 @@
       pointer-events: none;
       white-space: nowrap;
       text-align: center;
+      margin-bottom: 10px;
     }
     
     .readings {
@@ -148,6 +155,7 @@
       backdrop-filter: blur(5px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       overflow-x: auto;
+      margin-bottom: 10px;
     }
     
     .reading-card {
@@ -278,6 +286,51 @@
       button {
         min-width: calc(50% - 5px);
       }
+      
+      .header h1 {
+        font-size: 1.2rem;
+      }
+      
+      .header p {
+        font-size: 0.8rem;
+      }
+      
+      .controls-container {
+        padding: 10px;
+      }
+    }
+    
+    @media (max-height: 700px) {
+      .header {
+        padding: 10px;
+      }
+      
+      .header h1 {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+      }
+      
+      .header p {
+        font-size: 0.7rem;
+      }
+      
+      .reading-card {
+        padding: 8px;
+        min-width: 70px;
+      }
+      
+      .reading-value {
+        font-size: 1rem;
+      }
+      
+      .reading-label {
+        font-size: 0.6rem;
+      }
+      
+      button {
+        padding: 10px 15px;
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
@@ -291,8 +344,9 @@
     <div id="ui-overlay">
       <div class="header">
         <h1>EXHAUST GAS ANALYZER</h1>
-        <p>SMK GAJAH MADA BANYUWANGI | TEKNIK EKNDARAAN RINGAN (TKR)</p>
-		<p>OLEH R. RIRIN SUPRIYADI,ST</p>
+        <p>SMK GAJAH MADA BANYUWANGI</p>
+        <p>KOMPETENSI KEAHLIAN TEKNIK KENDARAAN RINGAN (TKR)</p>
+        <p>OLEH R. RIRIN SUPRIYADI,ST</p>
       </div>
            
       <div class="controls-container">
@@ -353,7 +407,6 @@
       </div>
     </div>
   </div>
-
   <script>
     // DOM Elements
     const video = document.getElementById('video');
