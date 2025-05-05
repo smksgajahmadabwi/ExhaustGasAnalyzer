@@ -350,7 +350,7 @@
         <div id="status">Klik "Mulai Analisis" untuk memulai</div>
         
         <div class="controls">
-          <button id="startBtn">Mulai Analisis</button>
+          <button id="startBtn">Start Analisis</button>
           <button id="flipBtn" class="secondary">Ganti Kamera</button>
         </div>
       </div>
@@ -658,7 +658,7 @@
           }
           
           isRunning = true;
-          startBtn.textContent = "Hentikan Analisis";
+          startBtn.textContent = "Stop Analisis";
           flipBtn.disabled = false;
           statusDisplay.textContent = `Menganalisis (kamera ${useFrontCamera ? 'depan' : 'belakang'})...`;
           startBtn.disabled = false;
