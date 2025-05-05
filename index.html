@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exhaust Gas Analyzer | SMK Gajah Mada Banyuwangi</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+      background: #000;
+    }
+    
+    #app-container {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+    }
+    
+    #video-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    #smokeOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 165, 0, 0.3);
+      opacity: 0;
+      z-index: 2;
+    }
+    
+    #ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .header {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px;
+      text-align: center;
+      border-bottom: 2px solid #4CAF50;
+      backdrop-filter: blur(5px);
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+      color: #4CAF50;
+      text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+    
+    .header p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    
+    .controls-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 15px;
+      pointer-events: auto;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+    
+    button {
+      background: linear-gradient(145deg, #4CAF50, #45a049);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      min-width: 120px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    button.secondary {
+      background: linear-gradient(145deg, #2196F3, #0b7dda);
+    }
+    
+    #status {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #ff9800;
+      backdrop-filter: blur(5px);
+      pointer-events: none;
+      white-space: nowrap;
+      text-align: center;
+    }
+    
+    .readings {
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-x: auto;
+    }
+    
+    .reading-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      transition: all 0.3s;
+      min-width: 80px;
+    }
+    
+    .reading-card:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .reading-value {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    
+    .reading-label {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      text-transform: uppercase;
+    }
+    
+    .settings-panel {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: auto;
+      margin-bottom: 10px;
+    }
+    
+    .settings-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    
+    .settings-group {
+      flex: 1;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.7rem;
+      opacity: 0.8;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 0.8rem;
+    }
+    
+    input[type="range"] {
+      padding: 0;
+      height: 6px;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      flex: 1;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px;
+      height: 15px;
+      background: #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .sensitivity-value {
+      min-width: 30px;
+      text-align: center;
+      font-size: 0.8rem;
+    }
+    
+    .school-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+    
+    .school-badge span {
+      font-size: 0.7rem;
+      text-align: center;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+    
+    @media (max-width: 768px) {
+      .readings {
+        flex-wrap: wrap;
+      }
+      
+      .reading-card {
+        min-width: calc(33% - 10px);
+      }
+      
+      .controls {
+        flex-wrap: wrap;
+      }
+      
+      button {
+        min-width: calc(50% - 5px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <div id="video-container">
+      <video id="video" autoplay muted playsinline></video>
+      <div id="smokeOverlay"></div>
+    </div>
+    
+    <div id="ui-overlay">
+      <div class="header">
+        <h1>EXHAUST GAS ANALYZER</h1>
+        <p>SMK GAJAH MADA BANYUWANGI | TEKNIK EKNDARAAN RINGAN (TKR)</p>
+		<p>OLEH R. RIRIN SUPRIYADI,ST</p>
+      </div>
+           
+      <div class="controls-container">
+        <div class="settings-panel">
+          <div class="settings-row">
+            <div class="settings-group">
+              <label for="vehicleType">Jenis Kendaraan</label>
+              <select id="vehicleType">
+                <option value="motor">Sepeda Motor</option>
+                <option value="car">Mobil</option>
+              </select>
+            </div>
+            <div class="settings-group">
+              <label for="afrSetting">AFR Manual</label>
+              <input type="number" id="afrSetting" step="0.1" min="10" max="20" placeholder="Auto">
+            </div>
+          </div>
+          <div class="settings-row">
+            <label for="rpmSensitivity">Sensitivitas RPM</label>
+            <input type="range" id="rpmSensitivity" min="1" max="100" value="18">
+            <div class="sensitivity-value" id="sensitivityValue">18</div>
+          </div>
+        </div>
+        
+        <div class="readings">
+          <div class="reading-card">
+            <div class="reading-label">AFR</div>
+            <div class="reading-value"><span id="afrValue">0</span></div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-label">O₂</div>
+            <div class="reading-value"><span id="o2Value">0</span>%</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-label">CO</div>
+            <div class="reading-value"><span id="coValue">0</span>%</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-label">CO₂</div>
+            <div class="reading-value"><span id="co2Value">0</span>%</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-label">HC</div>
+            <div class="reading-value"><span id="hcValue">0</span>ppm</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-label">RPM</div>
+            <div class="reading-value"><span id="rpmValue">0</span></div>
+          </div>
+        </div>
+        
+        <div id="status">Klik "Mulai Analisis" untuk memulai</div>
+        
+        <div class="controls">
+          <button id="startBtn">Mulai Analisis</button>
+          <button id="flipBtn" class="secondary">Ganti Kamera</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const video = document.getElementById('video');
+    const smokeOverlay = document.getElementById('smokeOverlay');
+    const startBtn = document.getElementById('startBtn');
+    const flipBtn = document.getElementById('flipBtn');
+    const statusDisplay = document.getElementById('status');
+    const afrDisplay = document.getElementById('afrValue');
+    const o2Display = document.getElementById('o2Value');
+    const coDisplay = document.getElementById('coValue');
+    const co2Display = document.getElementById('co2Value');
+    const hcDisplay = document.getElementById('hcValue');
+    const rpmDisplay = document.getElementById('rpmValue');
+    const afrSetting = document.getElementById('afrSetting');
+    const rpmSensitivity = document.getElementById('rpmSensitivity');
+    const sensitivityValue = document.getElementById('sensitivityValue');
+    const vehicleTypeSelect = document.getElementById('vehicleType');
+
+    // System Variables
+    let audioContext;
+    let analyser;
+    let isRunning = false;
+    let lastUpdateTime = 0;
+    let currentRPM = 0;
+    let smokeLevel = 0;
+    let currentStream = null;
+    let useFrontCamera = true;
+    let vehicleType = 'motor';
+    let lastPeakFreq = 0;
+
+    // Calculate Gas Values from AFR
+    function calculateGases(afr) {
+      let nO2 = 0, nCO = 0, nCO2 = 0, nHC = 0;
+
+      // O₂ Calculation
+      if (afr > 10.09 && afr < 15.09) nO2 = (0.2 * afr) - 2.01;
+      else if (afr >= 15.09) nO2 = (0.5567 * afr ** 2) - (16.506 * afr) + 123.4;
+
+      // CO Calculation
+      if (afr > 10.8 && afr < 14.5) nCO = (0.0365 * afr ** 2) - (3.6142 * afr) + 44.78;
+      else if (afr >= 10.0 && afr <= 10.9) nCO = 10.0;
+      else if (afr > 14.4) nCO = 0.215;
+
+      // CO₂ Calculation
+      if (afr > 10.0 && afr < 13.1) nCO2 = (1.75 * afr) - 9.75;
+      else if (afr >= 13.0) nCO2 = -(0.4348 * afr ** 2) + (13.043 * afr) - 83.087;
+
+      // HC Calculation (adjusted for smoke level)
+      if (afr > 10.0 && afr < 16.1) {
+        nHC = ((0.3984 * afr ** 2) - (12.429 * afr) + 98.208) * 200;
+      } else if (afr >= 16.0) {
+        nHC = ((4.2119 * afr ** 3) - (202.39 * afr ** 2) + (3241.8 * afr) - 17307) * 200;
+      }
+      nHC *= (1 + smokeLevel * 0.5); // Scale HC based on smoke
+
+      return {
+        o2: Math.max(0, nO2),
+        co: Math.max(0, nCO),
+        co2: Math.max(0, nCO2),
+        hc: Math.max(0, nHC)
+      };
+    }
+
+    // Estimate AFR based on RPM (inferred from sound)
+    function estimateAFR(rpm) {
+      // Check for manual AFR override
+      const manualAFR = parseFloat(afrSetting.value);
+      //if (!isNaN(manualAFR)) return manualAFR;
+      
+      // Parameters based on vehicle type
+      let minRPM, maxRPM, minAFR, maxAFR;
+      
+      if (vehicleType === 'motor') {
+        // Sepeda Motor parameters
+        minRPM = 1300;
+        maxRPM = 9000;
+        minAFR = 12.6;  // Rich at high RPM
+        maxAFR = manualAFR;
+      } else {
+        // Mobil parameters
+        minRPM = 600;
+        maxRPM = 8000;
+        minAFR = 12.2;  // Slightly richer for cars
+        maxAFR = manualAFR;
+      }
+      
+      // Handle edge cases
+      if (rpm <= minRPM) return maxAFR;
+      if (rpm >= maxRPM) return minAFR;
+      
+      // Calculate normalized RPM (0-1)
+      const normalizedRPM = (rpm - minRPM) / (maxRPM - minRPM);
+      
+      // Use exponential curve for smoother transition
+      const curveFactor = 0.6; // Adjust this for different curve shapes
+      const rpmFactor = Math.pow(normalizedRPM, curveFactor);
+      
+      // Calculate AFR
+      let afr = maxAFR - (maxAFR - minAFR) * rpmFactor;
+      
+      // For cars, add a slight richness in mid-range
+      if (vehicleType === 'car' && rpm > 2500 && rpm < 5500) {
+        afr -= 0.4;
+      }
+      
+      return Math.max(minAFR, Math.min(maxAFR, afr));
+    }
+
+    // Advanced FFT-based RPM detection
+    function analyzeFrequency() {
+      if (!analyser) return;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Find the peak frequency with harmonic enhancement
+      let maxFreq = 0;
+      let maxIndex = 0;
+      let totalEnergy = 0;
+      
+      // We'll focus on frequencies between 20Hz and 1000Hz (typical engine range)
+      const minFrequencyBin = Math.floor(20 / (audioContext.sampleRate / 2) * bufferLength);
+      const maxFrequencyBin = Math.floor(1000 / (audioContext.sampleRate / 2) * bufferLength);
+      
+      // Apply harmonic enhancement by giving weight to harmonics
+      const enhancedData = new Array(bufferLength).fill(0);
+      for (let i = minFrequencyBin; i < maxFrequencyBin; i++) {
+        // Base frequency
+        enhancedData[i] += dataArray[i];
+        
+        // First harmonic (2x frequency)
+        if (i*2 < bufferLength) enhancedData[i] += dataArray[i*2] * 0.7;
+        
+        // Second harmonic (3x frequency)
+        if (i*3 < bufferLength) enhancedData[i] += dataArray[i*3] * 0.4;
+        
+        totalEnergy += enhancedData[i];
+      }
+      
+      // Find the peak in enhanced data
+      for (let i = minFrequencyBin; i < maxFrequencyBin; i++) {
+        if (enhancedData[i] > maxFreq) {
+          maxFreq = enhancedData[i];
+          maxIndex = i;
+        }
+      }
+      
+      // Only update if we have significant energy
+     // if (totalEnergy > bufferLength * 10) {
+        const nyquist = audioContext.sampleRate / 2;
+        const dominantFreq = maxIndex * nyquist / bufferLength;
+        
+        // Apply sensitivity adjustment
+        const sensitivity = rpmSensitivity.value / 100;
+        let newRPM = dominantFreq * 60 * sensitivity;
+        
+        // Apply vehicle-specific base RPM
+        const baseRPM = vehicleType === 'motor' ? 1300 : 600;
+        newRPM = Math.max(baseRPM, newRPM);
+        
+        // Smooth the RPM transition
+        const smoothing = Math.abs(newRPM - currentRPM) > 1000 ? 0.5 : 0.9;
+        currentRPM = smoothing * currentRPM + (1 - smoothing) * newRPM;
+        
+        // Update last peak frequency
+       lastPeakFreq = dominantFreq;
+    //  }
+    }
+
+    // Analyze Camera Input for Smoke
+    function analyzeSmoke() {
+      if (video.videoWidth === 0 || video.videoHeight === 0) return;
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Calculate average darkness (proxy for smoke)
+      let totalDarkness = 0;
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const r = imageData.data[i];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
+        totalDarkness += (255 - (r + g + b) / 3) / 255;
+      }
+      smokeLevel = totalDarkness / (imageData.data.length / 4);
+      smokeOverlay.style.opacity = smokeLevel * 0.7;
+    }
+
+    // Main Update Loop
+    function update() {
+      if (!isRunning) return;
+
+      const now = Date.now();
+      if (now - lastUpdateTime < 200) { // Faster updates for better responsiveness
+        requestAnimationFrame(update);
+        return;
+      }
+      lastUpdateTime = now;
+
+      // Update RPM from audio using FFT
+      analyzeFrequency();
+
+      // Update smoke level from camera
+      if (video.readyState >= 2) analyzeSmoke();
+
+      // Calculate AFR and gases
+      const afr = estimateAFR(currentRPM);
+      const gases = calculateGases(afr);
+
+      // Update displays
+      afrDisplay.textContent = afr.toFixed(2);
+      o2Display.textContent = gases.o2.toFixed(2);
+      coDisplay.textContent = gases.co.toFixed(3);
+      co2Display.textContent = gases.co2.toFixed(1);
+      hcDisplay.textContent = Math.round(gases.hc);
+      rpmDisplay.textContent = Math.round(currentRPM);
+
+      requestAnimationFrame(update);
+    }
+
+    // Get camera stream with specified facing mode
+    async function getCameraStream(front = true) {
+      try {
+        const constraints = {
+          video: {
+            facingMode: front ? "user" : "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        };
+        
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        currentStream = stream;
+        video.srcObject = stream;
+        
+        // Initialize/reinitialize audio context
+        if (audioContext) audioContext.close();
+        
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 4096; // Higher resolution for better frequency analysis
+        analyser.smoothingTimeConstant = 0.8; // Smoother transitions
+        
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        
+        return stream;
+      } catch (err) {
+        console.error("Error accessing camera/microphone:", err);
+        statusDisplay.textContent = `Error: ${err.message}`;
+        return null;
+      }
+    }
+
+    // Flip camera between front and back
+    async function flipCamera() {
+      useFrontCamera = !useFrontCamera;
+      await getCameraStream(useFrontCamera);
+      statusDisplay.textContent = `Menggunakan kamera ${useFrontCamera ? 'depan' : 'belakang'}`;
+    }
+
+    // Start/Stop Analysis
+    async function toggleAnalysis() {
+      if (isRunning) {
+        // Stop
+        if (audioContext) await audioContext.close();
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+        isRunning = false;
+        startBtn.textContent = "Mulai Analisis";
+        flipBtn.disabled = true;
+        statusDisplay.textContent = "Analisis dihentikan";
+      } else {
+        // Start
+        try {
+          statusDisplay.textContent = "Menginisialisasi kamera dan mikrofon...";
+          startBtn.disabled = true;
+          
+          const stream = await getCameraStream(useFrontCamera);
+          
+          if (!stream) {
+            statusDisplay.textContent = "Perangkat media tidak tersedia";
+            startBtn.disabled = false;
+            return;
+          }
+          
+          isRunning = true;
+          startBtn.textContent = "Hentikan Analisis";
+          flipBtn.disabled = false;
+          statusDisplay.textContent = `Menganalisis (kamera ${useFrontCamera ? 'depan' : 'belakang'})...`;
+          startBtn.disabled = false;
+          update();
+        } catch (err) {
+          statusDisplay.textContent = `Error: ${err.message}`;
+          startBtn.disabled = false;
+          console.error(err);
+        }
+      }
+    }
+
+    // Event Listeners
+    startBtn.addEventListener('click', toggleAnalysis);
+    flipBtn.addEventListener('click', flipCamera);
+    vehicleTypeSelect.addEventListener('change', function() {
+      vehicleType = this.value;
+      statusDisplay.textContent = `Mode kendaraan diubah ke ${this.value === 'motor' ? 'Sepeda Motor' : 'Mobil'}`;
+    });
+    
+    rpmSensitivity.addEventListener('input', function() {
+      sensitivityValue.textContent = this.value;
+    });
+
+    // Initialize with front camera by default
+    getCameraStream(true).catch(console.error);
+  </script>
+</body>
+</html>
