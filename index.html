@@ -17,6 +17,9 @@
       overflow: hidden;
       height: 100vh;
       background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     
     #app-container {
@@ -25,7 +28,7 @@
       width: 100vw;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
     }
     
     #video-container {
@@ -55,16 +58,15 @@
     }
     
     #ui-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
+      position: relative;
       width: 100%;
       height: 100%;
       z-index: 10;
       pointer-events: none;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      padding: 20px;
     }
     
     .header {
@@ -73,6 +75,8 @@
       text-align: center;
       border-bottom: 2px solid #4CAF50;
       backdrop-filter: blur(5px);
+      border-radius: 10px 10px 0 0;
+      margin-bottom: -5px;
     }
     
     .header h1 {
@@ -87,26 +91,29 @@
       opacity: 0.9;
     }
     
+    .main-content {
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 0 0 10px 10px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
     .controls-container {
       width: 100%;
       display: flex;
       flex-direction: column;
       gap: 10px;
       padding: 15px;
-      pointer-events: auto;
-      background: rgba(0, 0, 0, 0.5);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .controls {
       display: flex;
       gap: 10px;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 15px;
-      border-radius: 15px;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     }
     
     button {
@@ -118,10 +125,9 @@
       cursor: pointer;
       font-weight: bold;
       font-size: 0.9rem;
-      min-width: 120px;
+      flex: 1;
       transition: all 0.3s;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      flex: 1;
     }
     
     button:hover {
@@ -149,11 +155,7 @@
     .readings {
       display: flex;
       gap: 10px;
-      background: rgba(0, 0, 0, 0.6);
       padding: 15px;
-      border-radius: 10px;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
       overflow-x: auto;
       margin-bottom: 10px;
     }
@@ -185,12 +187,7 @@
     }
     
     .settings-panel {
-      background: rgba(0, 0, 0, 0.7);
       padding: 15px;
-      border-radius: 10px;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      pointer-events: auto;
       margin-bottom: 10px;
     }
     
@@ -295,7 +292,7 @@
         font-size: 0.8rem;
       }
       
-      .controls-container {
+      #ui-overlay {
         padding: 10px;
       }
     }
@@ -330,6 +327,12 @@
       button {
         padding: 10px 15px;
         font-size: 0.8rem;
+      }
+      
+      #ui-overlay {
+        padding: 10px;
+        justify-content: flex-start;
+        padding-top: 20px;
       }
     }
   </style>
